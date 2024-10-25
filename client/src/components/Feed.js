@@ -34,6 +34,7 @@ import {
 } from '@mui/icons-material';
 import CloseIcon from '@mui/icons-material/Close';
 import { jwtDecode } from 'jwt-decode';
+import { Link } from 'react-router-dom';
 
 const image = 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e'
 
@@ -59,7 +60,7 @@ function Feed() {
   const [selectedFeed, setSelectedFeed] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
-  const [userInfo , setUserInfo] = useState([]);
+  const [userInfo , setUserInfo] = useState(null);
   async function fnFeedList(){
     try{
       const res = await axios.get('http://localhost:3100/feed');
@@ -71,21 +72,20 @@ function Feed() {
       console.log("FeedList쪽에러");
     }
   }
-  
-  // const fnLoginInfo(){
-  //   const token = localStorage.getItem("token");
-  //   const dToken = jwtDecode(token);
-  //   setUserInfo(()=>{
-  //     userInfo = {userId : dToken.userId, name :dToken.name};
-  //   });
-  // };
 
 useEffect(()=>{
   const token = localStorage.getItem("token");
-  const dToken = jwtDecode(token);
-  console.log("feed에서디토큰",dToken);
-  console.log("feed에서디토큰",dToken.userId);
-  fnFeedList();
+  if(token){
+    const dToken = jwtDecode(token);
+    console.log("feed에서디토큰",dToken);
+    setUserInfo({userId : dToken.userId, name : dToken.name});
+    fnFeedList();
+  }else{
+    console.log(feeds);
+    console.log("로그인 안했음.");
+    console.log("토큰값",token);
+  }
+  
 },[]);
 
   const handleClickOpen = (feed) => {
@@ -113,8 +113,9 @@ useEffect(()=>{
   };
 
   const logout = () =>{
-    const token = localStorage.getItem("token");
-    token = null;
+    localStorage.removeItem("token"); // 토큰 삭제
+    setUserInfo(null);
+    setFeeds([]);
   };
 
   return (
@@ -122,12 +123,29 @@ useEffect(()=>{
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6">SNS</Typography>
-          <Button color="error" onClick={logout}>
-            로그아웃
-          </Button>
+          {userInfo && (
+            <Button color="error" onClick={logout}>
+              로그아웃
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
 
+      {/* 비로그인시 보이는화면 */}
+      <Box mt={4} sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Grid2 container spacing={3} justifyContent="center">
+          {!userInfo && (
+            <>
+              <Link to="/login" style={{ textDecoration: 'none' }}>
+                <Button color="error">로그인</Button>
+              </Link>
+              <Grid2 xs={12} sm={6} md={4}>
+                로그인해야 피드 보임 .
+              </Grid2>
+            </>
+          )}
+        </Grid2>
+      </Box>
 
       {/* 이부분이 피드에서 바로 보이는 부분 */}
       <Box mt={4} sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -138,16 +156,22 @@ useEffect(()=>{
                 {/* 피드헤더 아아디 / ㅈ작성일; */}
                 <CardHeader
                   avatar={
-                    <Avatar sx={{ bgcolor: blue[500] }} aria-label="recipe">
-                      User
-                    </Avatar>
+                    <Link to={`/profile/${feed.userId}`} style={{ textDecoration: 'none' }}>
+                      <Avatar sx={{ bgcolor: blue[500] }} aria-label="recipe">
+                        User
+                      </Avatar>
+                    </Link>
                   }
                   action={
                     <IconButton aria-label="settings">
                       <MoreVertIcon />
                     </IconButton>
                   }
-                  title={feed.userId}
+                  title={
+                    <Link to={`/profile/${feed.userId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                      {feed.userId}
+                    </Link>
+                  }
                   subheader={feed.cdatetime}
                 />
                 {/* 피드사진 */}

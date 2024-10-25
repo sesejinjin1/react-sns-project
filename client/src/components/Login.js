@@ -24,7 +24,7 @@ function Login() {
       if(res.data.success){
         console.log("resdata콘솔",res.data);;
         localStorage.setItem("token",res.data.token);
-        navigate("/feed");
+        navigate("/");
       }else{
         alert("id비번확인좀");
         console.log("resdata콘솔",res.data);
