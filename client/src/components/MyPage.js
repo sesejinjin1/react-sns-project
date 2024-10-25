@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Container, Typography, Box, Avatar, Grid, Paper, Button, Grid2, Card, CardMedia } from '@mui/material';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
+import { useParams } from 'react-router-dom';
 
 function MyPage() {
-  
   const [userInfo, setUserInfo] = useState(null);
-
+  const {urlId} = useParams();
+  console.log(urlId);
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {

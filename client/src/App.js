@@ -22,7 +22,7 @@ function App() {
           <Route path="/join" element={<Join />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/mypage" element={<MyPage />} />
+          <Route path="/mypage/:userId" element={<MyPage />} /> 
         </Routes>
       </Box>
     </Box>
