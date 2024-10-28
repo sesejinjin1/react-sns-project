@@ -41,7 +41,7 @@ router.route("/")
                     console.log("decode",decoded);
                     res.json({success: true, message : "로그인성공", token});
                 }else{
-                    res.json({result : false, message : '아디비번확인하세요'});
+                    res.json({result : false, message : '로그인 정보를 확인해주세요.'});
                 }
 
             }else{
@@ -51,5 +51,25 @@ router.route("/")
 
 
     });
+
+    
+router.route("/insert")
+.post(async (req, res)=>{
+  const { name, email, pwd } = req.body;
+  const query = 'INSERT INTO TBL_USER(name,id, pwd) VALUES(?,?, ?)';
+  
+  const pwdHash = await bcrypt.hash(pwd, ROUND);
+  console.log("해쉬비번>",pwdHash);
+  bcrypt.hash(pwd, ROUND, (err, hash)=>{
+    console.log("해시 값 : ", hash);
+  });
+  connection.query(query, [name ,email, pwdHash], (err, results) => {
+    if (err) {
+      return res.json({success : false, message : "db 오류"});
+    };
+
+    res.json({success : true, message : "회원가입 성공!"});
+  });
+});
 
 module.exports = router;

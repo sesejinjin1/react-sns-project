@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
-  Grid2,
   AppBar,
   Toolbar,
   Typography,
@@ -24,198 +23,167 @@ import {
   ListItemText,
   ListItemAvatar,
   Avatar,
-
 } from '@mui/material';
 import { blue } from '@mui/material/colors';
 import {
   MoreVert as MoreVertIcon,
   Favorite as FavoriteIcon,
-  Share as ShareIcon
+  Share as ShareIcon,
 } from '@mui/icons-material';
 import CloseIcon from '@mui/icons-material/Close';
 import { jwtDecode } from 'jwt-decode';
 import { Link } from 'react-router-dom';
 
-const image = 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e'
-
-// const mockFeeds = [
-//   {
-//     id: 1,
-//     title: '게시물 1',
-//     description: '이것은 게시물 1의 설명입니다.',
-//     image: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e',
-//   },
-//   {
-//     id: 2,
-//     title: '게시물 2',
-//     description: '이것은 게시물 2의 설명입니다.',
-//     image: 'https://images.unsplash.com/photo-1521747116042-5a810fda9664',
-//   },
-//   // 추가 피드 데이터
-// ];
 
 function Feed() {
+  const image = 'http://localhost:3100/';
   const [feeds, setFeeds] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedFeed, setSelectedFeed] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
-  const [userInfo , setUserInfo] = useState(null);
-  async function fnFeedList(){
-    try{
+  const [userInfo, setUserInfo] = useState(null);
+  const token = localStorage.getItem("token");
+  const dToken = token ? jwtDecode(token) : null;
+
+  async function fnFeedList() {
+    try {
       const res = await axios.get('http://localhost:3100/feed');
-      if(res.data.success){
+      if (res.data.success) {
         setFeeds(res.data.list);
         console.log(res.data.list);
       }
-    }catch{
+    } catch {
       console.log("FeedList쪽에러");
     }
   }
 
-useEffect(()=>{
-  const token = localStorage.getItem("token");
-  if(token){
-    const dToken = jwtDecode(token);
-    console.log("feed에서디토큰",dToken);
-    setUserInfo({userId : dToken.userId, name : dToken.name});
-    fnFeedList();
-  }else{
-    console.log(feeds);
-    console.log("로그인 안했음.");
-    console.log("토큰값",token);
-  }
-  
-},[]);
+  useEffect(() => {
+    if (token) {
+      setUserInfo({ userId: dToken.userId, name: dToken.name });
+      fnFeedList();
+    } else {
+      console.log("로그인 안했음.");
+    }
+  }, []);
 
   const handleClickOpen = (feed) => {
     setSelectedFeed(feed);
     setOpen(true);
-    setComments([
+    setComments([ // 초기 댓글을 고유 ID로 설정
       { id: 'user1', text: '멋진 사진이에요!' },
       { id: 'user2', text: '이 장소에 가보고 싶네요!' },
       { id: 'user3', text: '아름다운 풍경이네요!' },
-    ]); // 샘플 댓글 추가
-    setNewComment(''); // 댓글 입력 초기화
+    ]);
+    setNewComment('');
   };
 
   const handleClose = () => {
     setOpen(false);
     setSelectedFeed(null);
-    setComments([]); // 모달 닫을 때 댓글 초기화
+    setComments([]);
   };
 
   const handleAddComment = () => {
     if (newComment.trim()) {
-      setComments([...comments, { id: 'currentUser', text: newComment }]); // 댓글 작성자 아이디 추가
+      // 새로운 댓글에 대해 고유한 ID 생성
+      const newCommentObj = {
+        //id: `currentUser_${Date.now()}`, // 현재 시간 기반으로 고유 ID 생성
+        id : userInfo.userId,
+        text: newComment,
+      };
+      setComments((prevComments) => [...prevComments, newCommentObj]);
       setNewComment('');
     }
   };
 
-  const logout = () =>{
-    localStorage.removeItem("token"); // 토큰 삭제
-    setUserInfo(null);
-    setFeeds([]);
-  };
-
   return (
     <Container maxWidth="md">
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6">SNS</Typography>
-          {userInfo && (
-            <Button color="error" onClick={logout}>
-              로그아웃
-            </Button>
-          )}
-        </Toolbar>
-      </AppBar>
+      {!token && ( // 로그인 안했을 때 메시지
+        <Typography variant="h6" align="center" mt={4}>
+          로그인 후 피드를 확인하세요.
+          <div>
+            <Link to="/login">
+              <Button color="primary">
+                로그인
+              </Button>
+            </Link>
+            <Link to="/join">
+              <Button color="primary">
+                회원가입
+              </Button>
+            </Link>
+          </div>
 
-      {/* 비로그인시 보이는화면 */}
-      <Box mt={4} sx={{ display: 'flex', justifyContent: 'center' }}>
-        <Grid2 container spacing={3} justifyContent="center">
-          {!userInfo && (
-            <>
-              <Link to="/login" style={{ textDecoration: 'none' }}>
-                <Button color="error">로그인</Button>
-              </Link>
-              <Grid2 xs={12} sm={6} md={4}>
-                로그인해야 피드 보임 .
-              </Grid2>
-            </>
-          )}
-        </Grid2>
+        </Typography>
+      )}
+      <Box mt={4} sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+        {feeds.map((feed) => (
+          <Card key={feed.id} sx={{ marginBottom: 2, maxWidth: 500, width: '100%' }}>
+            <CardHeader
+              avatar={
+                <Link to={`/mypage/${feed.userId}`} style={{ textDecoration: 'none' }}>
+                  <Avatar sx={{ bgcolor: blue[500] }} aria-label="recipe">
+                    User
+                  </Avatar>
+                </Link>
+              }
+              action={
+                <IconButton aria-label="settings">
+                  <MoreVertIcon />
+                </IconButton>
+              }
+              title={
+                <Link to={`/profile/${feed.userId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  {feed.userId}
+                </Link>
+              }
+              subheader={feed.cdatetime}
+            />
+            <CardMedia
+              component="img"
+              sx={{
+                height: {
+                  xs: '350px',  
+                  md: '500px'   
+                },
+                width: {
+                  xs: '350px',  
+                  md: '500px'   
+                },
+                objectFit: 'cover', 
+                margin: '0 auto'  
+              }}
+              image={`${image}${feed.IMG_PATH}`}
+              alt={feed.userId}
+              onClick={() => handleClickOpen(feed)}
+              style={{ cursor: 'pointer' }}
+            />
+            <CardActions disableSpacing>
+              <IconButton aria-label="add to favorites">
+                <FavoriteIcon />
+              </IconButton>
+              <IconButton aria-label="share">
+                <ShareIcon />
+              </IconButton>
+            </CardActions>
+            {feed.favorite > 0 && (
+              <CardContent>
+                <Typography variant="body2" color="textSecondary">
+                  좋아요 {feed.favorite}개
+                </Typography>
+              </CardContent>
+            )}
+            <CardContent>
+              <Typography variant="body2" color="textSecondary">
+                {feed.content}
+              </Typography>
+            </CardContent>
+          </Card>
+        ))}
       </Box>
 
-      {/* 이부분이 피드에서 바로 보이는 부분 */}
-      <Box mt={4} sx={{ display: 'flex', justifyContent: 'center' }}>
-        <Grid2 container spacing={3} justifyContent="center">
-          {feeds.map((feed)=>(
-            <Grid2 xs={12} sm={6} md={4} key={feed.id}>
-              <Card>
-                {/* 피드헤더 아아디 / ㅈ작성일; */}
-                <CardHeader
-                  avatar={
-                    <Link to={`/profile/${feed.userId}`} style={{ textDecoration: 'none' }}>
-                      <Avatar sx={{ bgcolor: blue[500] }} aria-label="recipe">
-                        User
-                      </Avatar>
-                    </Link>
-                  }
-                  action={
-                    <IconButton aria-label="settings">
-                      <MoreVertIcon />
-                    </IconButton>
-                  }
-                  title={
-                    <Link to={`/profile/${feed.userId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                      {feed.userId}
-                    </Link>
-                  }
-                  subheader={feed.cdatetime}
-                />
-                {/* 피드사진 */}
-                <CardMedia
-                  component="img"
-                  height="350"
-                  image={image}
-                  alt={feed.userId}
-                  onClick={() => handleClickOpen(feed)}
-                  style={{ cursor: 'pointer' }}
-                />
-                {/* 피드 좋아요버튼 등 */}
-                <CardActions disableSpacing>
-                  <IconButton aria-label="add to favorites">
-                    <FavoriteIcon />
-                  </IconButton>
-                  <IconButton aria-label="share">
-                    <ShareIcon />
-                  </IconButton>
-                </CardActions>
-                {/* 피드 좋아요 수 */}
-                {feed.favorite>0 &&(
-                <CardContent>
-                  <Typography variant="body2" color="textSecondary">
-                    좋아요 {feed.favorite}개
-                  </Typography>
-                </CardContent>
-                )}
-                {/* 피드내용 */}
-                <CardContent>
-                  <Typography variant="body2" color="textSecondary">
-                    {feed.content}
-                  </Typography>
-                </CardContent>
-
-              </Card>
-            </Grid2>
-          ))}
-        </Grid2>
-      </Box>
-
-      
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="lg"> {/* 모달 크기 조정 */}
-        {/* 모달 제목부분 */}
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="lg">
         <DialogTitle>
           {selectedFeed?.userId}
           <IconButton
@@ -230,14 +198,12 @@ useEffect(()=>{
         </DialogTitle>
         
         <DialogContent sx={{ display: 'flex' }}>
-          {/* 모달 내용부분  */}
           <Box sx={{ flex: 1 }}>
-            <Typography variant="body1">{selectedFeed?.description}</Typography>
-            {/* 원래 선택한 피드에 이미지가 있을경우에만 표시selectedFeed?.image  */}
-            {image && (
+            <Typography variant="body1">{selectedFeed?.content}</Typography>
+            {selectedFeed?.IMG_PATH && (
               <img
-                src={image}
-                alt={image}
+                src={`${image}${selectedFeed.IMG_PATH}`}
+                alt={selectedFeed?.userId}
                 style={{ width: '100%', marginTop: '10px' }}
               />
             )}
@@ -248,11 +214,11 @@ useEffect(()=>{
             <Typography variant="h6">댓글</Typography>
             <List>
               {comments.map((comment, index) => (
-                <ListItem key={index}>
+                <ListItem key={comment.id}> {/* ID를 key로 사용 */}
                   <ListItemAvatar>
-                    <Avatar>{comment.id.charAt(0).toUpperCase()}</Avatar> {/* 아이디의 첫 글자를 아바타로 표시 */}
+                    <Avatar>{comment.id.charAt(0).toUpperCase()}</Avatar>
                   </ListItemAvatar>
-                  <ListItemText primary={comment.text} secondary={comment.id} /> {/* 아이디 표시 */}
+                  <ListItemText primary={comment.text} secondary={comment.id} />
                 </ListItem>
               ))}
             </List>

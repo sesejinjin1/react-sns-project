@@ -8,7 +8,9 @@ import Register from './components/Register';
 import MyPage from './components/MyPage';
 import Menu from './components/Menu'; // Menu로 변경
 
+
 function App() {
+
   const location = useLocation();
   const isAuthPage = location.pathname === '/login' || location.pathname === '/join';
 
@@ -22,7 +24,7 @@ function App() {
           <Route path="/join" element={<Join />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/mypage/:userId" element={<MyPage />} /> 
+          <Route path="/mypage/:urlId" element={<MyPage />} /> 
         </Routes>
       </Box>
     </Box>
