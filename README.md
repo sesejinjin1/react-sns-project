@@ -1,6 +1,6 @@
-//![image](https://github.com/user-attachments/assets/f79fff8f-607d-4f7b-bbd1-cae55a2a1020)<div align="center">
-  //  <img src="https://capsule-render.vercel.app/api?type=waving&color=ff8002&height=260&text=FURNATURE&animation=&fontColor=ffffff&fontSize=50" />
-    //</div>
+ <!-- ![image](https://github.com/user-attachments/assets/f79fff8f-607d-4f7b-bbd1-cae55a2a1020)<div align="center">
+    <img src="https://capsule-render.vercel.app/api?type=waving&color=ff8002&height=260&text=FURNATURE&animation=&fontColor=ffffff&fontSize=50" />
+   </div> -->
     
 <div align="center">
 <!--     <img src="" style="width:600px;"> -->
